@@ -19,16 +19,40 @@
 
 import type { Stage } from './Stage.js';
 
+let _pauseRaf = false;
+
+const loop = (stage: Stage) => {
+  const runLoop = () => {
+    if (_pauseRaf && !stage.hasSceneUpdates()) {
+      return pause(stage);
+    }
+
+    // emit('frameStart');
+    stage.drawFrame();
+    requestAnimationFrame(runLoop);
+  };
+  requestAnimationFrame(runLoop);
+};
+
+const pause = (stage: Stage) => {
+  const runPause = () => {
+    stage.updateAnimations();
+
+    if (stage.hasSceneUpdates()) {
+      return loop(stage);
+    }
+
+    setTimeout(runPause, 1000 / 60);
+  };
+  runPause();
+};
+
 /**
  * Platform render loop initiator
  */
-export const startLoop = (stage: Stage) => {
-  const loop = () => {
-    // emit('frameStart');
-    stage.drawFrame();
-    requestAnimationFrame(loop);
-  };
-  requestAnimationFrame(loop);
+export const startLoop = (stage: Stage, pauseRaf: boolean) => {
+  _pauseRaf = pauseRaf;
+  loop(stage);
 };
 
 /**

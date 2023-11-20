@@ -48,6 +48,7 @@ export interface StageOptions {
   debug?: {
     monitorTextureCache?: boolean;
   };
+  pauseRaf: boolean;
 }
 
 const bufferMemory = 2e6;
@@ -146,14 +147,15 @@ export class Stage {
 
     // execute platform start loop
     if (autoStart) {
-      startLoop(this);
+      startLoop(this, options.pauseRaf || true);
     }
   }
+
   /**
-   * Start a new frame draw
+   * Update animations
    */
-  drawFrame() {
-    const { renderer, scene, animationManager } = this;
+  updateAnimations() {
+    const { scene, animationManager } = this;
     if (!scene?.root) {
       return;
     }
@@ -166,19 +168,44 @@ export class Stage {
 
     // step animation
     animationManager.update(this.deltaTime);
+  }
 
-    // reset and clear viewport
-    renderer?.reset();
+  /**
+   * Check if the scene has updates
+   */
+  hasSceneUpdates() {
+    const { scene } = this;
 
-    // test if we need to update the scene
-    if (scene?.root?.hasUpdates) {
-      scene?.root?.update(this.deltaTime);
+    if (!scene?.root) {
+      return false;
     }
 
-    this.addQuads(scene.root);
+    return scene?.root?.hasUpdates;
+  }
 
-    renderer?.sortRenderables();
-    renderer?.render();
+  /**
+   * Start a new frame draw
+   */
+  drawFrame() {
+    const { renderer, scene } = this;
+    if (!scene?.root) {
+      return;
+    }
+
+    this.updateAnimations();
+
+    if (scene?.root?.hasUpdates) {
+      // test if we need to update the scene
+      renderer?.reset();
+
+      // reset and clear viewport
+      scene?.root?.update(this.deltaTime);
+
+      this.addQuads(scene.root);
+
+      renderer?.sortRenderables();
+      renderer?.render();
+    }
   }
 
   addQuads(node: CoreNode, parentClippingRect: Rect | null = null) {

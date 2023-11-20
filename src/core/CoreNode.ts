@@ -494,6 +494,7 @@ export class CoreNode extends EventEmitter implements ICoreNode {
 
   set alpha(value: number) {
     this.props.alpha = value;
+    this.setHasUpdates();
   }
 
   get worldAlpha(): number {
@@ -509,6 +510,10 @@ export class CoreNode extends EventEmitter implements ICoreNode {
 
   set clipping(value: boolean) {
     this.props.clipping = value;
+
+    this.children.forEach((child) => {
+      child.setHasUpdates();
+    });
   }
 
   get color(): number {
@@ -528,6 +533,10 @@ export class CoreNode extends EventEmitter implements ICoreNode {
       this.colorBr = value;
     }
     this.props.color = value;
+
+    this.children.forEach((child) => {
+      child.setHasUpdates();
+    });
   }
 
   get colorTop(): number {
@@ -633,6 +642,7 @@ export class CoreNode extends EventEmitter implements ICoreNode {
 
   set zIndex(value: number) {
     this.props.zIndex = value;
+    this.setHasUpdates();
   }
 
   get parent(): CoreNode | null {
