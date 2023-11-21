@@ -35,7 +35,6 @@ import type {
 } from './text-rendering/renderers/TextRenderer.js';
 import { SdfTextRenderer } from './text-rendering/renderers/SdfTextRenderer/SdfTextRenderer.js';
 import { CanvasTextRenderer } from './text-rendering/renderers/CanvasTextRenderer.js';
-import { intersectRect, type Rect } from './lib/utils.js';
 
 export interface StageOptions {
   rootId: number;
@@ -208,32 +207,15 @@ export class Stage {
     }
   }
 
-  addQuads(node: CoreNode, parentClippingRect: Rect | null = null) {
+  addQuads(node: CoreNode) {
     assertTruthy(this.renderer && node.globalTransform);
-    const gt = node.globalTransform;
-    const isRotated = gt.tb !== 0 || gt.tc !== 0;
 
-    let clippingRect: Rect | null =
-      node.clipping && !isRotated
-        ? {
-            x: gt.tx,
-            y: gt.ty,
-            width: node.width * gt.ta,
-            height: node.height * gt.td,
-          }
-        : null;
-    if (parentClippingRect && clippingRect) {
-      clippingRect = intersectRect(parentClippingRect, clippingRect);
-    } else if (parentClippingRect) {
-      clippingRect = parentClippingRect;
-    }
-
-    node.renderQuads(this.renderer, clippingRect);
+    node.renderQuads(this.renderer);
     node.children.forEach((child) => {
       if (child.worldAlpha === 0) {
         return;
       }
-      this.addQuads(child, clippingRect);
+      this.addQuads(child);
     });
   }
 
