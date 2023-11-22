@@ -73,6 +73,7 @@ import type { ExampleSettings } from './common/ExampleSettings.js';
       clearColor: 0x00000000,
       coreExtensionModule: coreExtensionModuleUrl,
       ...customSettings,
+      pauseRaf: true,
     },
     'app',
     driver,
@@ -84,19 +85,19 @@ import type { ExampleSettings } from './common/ExampleSettings.js';
 
   assertTruthy(canvas instanceof HTMLCanvasElement);
 
-  if (showOverlay) {
-    const overlayText = renderer.createTextNode({
-      color: 0xff0000ff,
-      text: `Test: ${test} | Driver: ${driverName}`,
-      zIndex: 99999,
-      parent: renderer.root,
-      fontSize: 50,
-    });
-    overlayText.once('loaded', (target: any, { dimensions }: LoadedPayload) => {
-      overlayText.x = renderer.settings.appWidth - dimensions.width - 20;
-      overlayText.y = renderer.settings.appHeight - dimensions.height - 20;
-    });
-  }
+  // if (showOverlay) {
+  //   const overlayText = renderer.createTextNode({
+  //     color: 0xff0000ff,
+  //     text: `Test: ${test} | Driver: ${driverName}`,
+  //     zIndex: 99999,
+  //     parent: renderer.root,
+  //     fontSize: 50,
+  //   });
+  //   overlayText.once('loaded', (target: any, { dimensions }: LoadedPayload) => {
+  //     overlayText.x = renderer.settings.appWidth - dimensions.width - 20;
+  //     overlayText.y = renderer.settings.appHeight - dimensions.height - 20;
+  //   });
+  // }
 
   const exampleSettings: ExampleSettings = {
     testName: test,

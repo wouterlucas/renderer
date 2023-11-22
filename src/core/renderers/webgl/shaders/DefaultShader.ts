@@ -23,6 +23,8 @@ import type { WebGlCoreCtxTexture } from '../WebGlCoreCtxTexture.js';
 import type { ShaderProgramSources } from '../internal/ShaderUtils.js';
 
 export class DefaultShader extends WebGlCoreShader {
+  private shaderCountIdx = 0;
+
   constructor(renderer: WebGlCoreRenderer) {
     super({
       renderer,
@@ -36,9 +38,15 @@ export class DefaultShader extends WebGlCoreShader {
   }
 
   override bindTextures(textures: WebGlCoreCtxTexture[]) {
+    if (this.shaderCountIdx > 8) {
+      return;
+    }
+
     const { gl } = this;
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, textures[0]!.ctxTexture);
+
+    this.shaderCountIdx++;
   }
 
   static override shaderSources: ShaderProgramSources = {

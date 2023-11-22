@@ -53,6 +53,7 @@ import {
 } from '../../lib/utils.js';
 import type { Dimensions } from '../../../common/CommonTypes.js';
 import { WebGlCoreShader } from './WebGlCoreShader.js';
+import { DefaultShader } from './shaders/DefaultShader.js';
 import { RoundedRectangle } from './shaders/RoundedRectangle.js';
 
 const WORDS_PER_QUAD = 24;
@@ -97,7 +98,7 @@ export class WebGlCoreRenderer extends CoreRenderer {
   renderables: Array<QuadOptions | WebGlCoreRenderOp> = [];
 
   //// Default Shader
-  defaultShader: WebGlCoreShader;
+  defaultShader: DefaultShader;
   quadBufferCollection: BufferCollection;
 
   /**
@@ -130,9 +131,7 @@ export class WebGlCoreRenderer extends CoreRenderer {
       extensions: getWebGlExtensions(gl),
     };
     this.shManager.renderer = this;
-    this.defaultShader = this.shManager.loadShader(
-      'DefaultShaderBatched',
-    ).shader;
+    this.defaultShader = this.shManager.loadShader('DefaultShader').shader;
     const quadBuffer = gl.createBuffer();
     assertTruthy(quadBuffer);
     const stride = 6 * Float32Array.BYTES_PER_ELEMENT;
@@ -209,10 +208,13 @@ export class WebGlCoreRenderer extends CoreRenderer {
    * @param renderable
    */
   override addRenderable(renderable: QuadOptions | WebGlCoreRenderOp) {
-    this.renderables?.push(renderable);
+    // this.renderables?.push(renderable);
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    this.addQuad(renderable);
   }
 
-  private addQuad(params: QuadOptions) {
+  addQuad(params: QuadOptions) {
     const { fQuadBuffer, uiQuadBuffer } = this;
     const {
       width,

@@ -46,23 +46,23 @@ export default async function ({ renderer }: ExampleSettings) {
     parent: node,
   });
 
-  const easingLabel = renderer.createTextNode({
-    parent: node,
-    x: 40,
-    y: 40,
-    fontFamily: 'Ubuntu',
-    fontSize: 40,
-    text: '',
-  });
+  // const easingLabel = renderer.createTextNode({
+  //   parent: node,
+  //   x: 40,
+  //   y: 40,
+  //   fontFamily: 'Ubuntu',
+  //   fontSize: 40,
+  //   text: '',
+  // });
 
-  const legend = renderer.createTextNode({
-    parent: node,
-    x: 40,
-    y: 90,
-    fontFamily: 'Ubuntu',
-    fontSize: 20,
-    text: 'press left or right arrow key to change easing',
-  });
+  // const legend = renderer.createTextNode({
+  //   parent: node,
+  //   x: 40,
+  //   y: 90,
+  //   fontFamily: 'Ubuntu',
+  //   fontSize: 20,
+  //   text: 'press left or right arrow key to change easing',
+  // });
 
   /**
    * Loop animation demo
@@ -100,9 +100,9 @@ export default async function ({ renderer }: ExampleSettings) {
   };
 
   const execEasing = (index = 0): void => {
-    const easing = easings[index] ?? 'linear';
-    easingLabel.text = `Easing demo: ${easing}`;
-    animationSettings.easing = easing;
+    const easing = easings[index] ?? 'ease-in-out';
+    // easingLabel.text = `Easing demo: ${easing}`;
+    animationSettings.easing = 'easing';
 
     // restore x position before start of every animation
     animatableNode.x = 0;
@@ -128,6 +128,26 @@ export default async function ({ renderer }: ExampleSettings) {
 
     currentAnimation.start();
   };
+
+  // let frameCount = 0;
+  // let prevTime = performance.now();
+
+  // function fps() {
+  //     const currentTime = performance.now();
+  //     const diffTime = currentTime - prevTime;
+
+  //     if (diffTime >= 1000) {
+  //         const fps = frameCount / (diffTime / 1000);
+  //         console.log(`FPS: ${fps}`);
+  //         prevTime = currentTime;
+  //         frameCount = 0;
+  //     }
+
+  //     frameCount++;
+  //     requestAnimationFrame(fps);
+  // }
+
+  // fps();
 
   window.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') {

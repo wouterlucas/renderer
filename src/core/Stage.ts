@@ -65,7 +65,7 @@ export class Stage {
 
   /// State
   deltaTime = 0;
-  lastFrameTime = 0;
+  lastFrameTime = 100 / 6;
   currentFrameTime = 0;
 
   /**
@@ -159,11 +159,11 @@ export class Stage {
       return;
     }
     this.lastFrameTime = this.currentFrameTime;
-    this.currentFrameTime = getTimeStamp();
+    this.currentFrameTime = Date.now();
 
-    this.deltaTime = !this.lastFrameTime
-      ? 100 / 6
-      : this.currentFrameTime - this.lastFrameTime;
+    this.deltaTime = this.currentFrameTime - this.lastFrameTime;
+
+    console.log('updateAnimations deltaTime: ', this.deltaTime);
 
     // step animation
     animationManager.update(this.deltaTime);
@@ -202,7 +202,7 @@ export class Stage {
 
       this.addQuads(scene.root);
 
-      renderer?.sortRenderables();
+      // renderer?.sortRenderables();
       renderer?.render();
     }
   }

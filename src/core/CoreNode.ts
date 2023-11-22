@@ -329,7 +329,7 @@ export class CoreNode extends EventEmitter implements ICoreNode {
     assertTruthy(gt);
 
     // add to list of renderables to be sorted before rendering
-    renderer.addRenderable({
+    renderer.addQuad({
       width,
       height,
       colorTl,
@@ -365,10 +365,8 @@ export class CoreNode extends EventEmitter implements ICoreNode {
   }
 
   set x(value: number) {
-    if (this.props.x !== value) {
-      this.props.x = value;
-      this.updateLocalTransform();
-    }
+    this.props.x = value;
+    this.updateLocalTransform();
   }
 
   get absX(): number {
