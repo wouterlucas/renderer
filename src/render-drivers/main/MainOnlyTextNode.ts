@@ -84,7 +84,6 @@ export class MainOnlyTextNode extends MainOnlyNode implements ITextNode {
         debug: props.debug,
 
         // These properties will get set appropriately in the base MainOnlyNode class
-        parent: null,
         texture: null,
         textureOptions: null,
         shader: null,

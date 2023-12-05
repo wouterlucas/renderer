@@ -316,6 +316,7 @@ export class CoreTextureManager {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       return this.ctxTextureCache.get(textureSource)!;
     }
+
     const texture = this.renderer.createCtxTexture(textureSource);
 
     this.ctxTextureCache.set(textureSource, texture);

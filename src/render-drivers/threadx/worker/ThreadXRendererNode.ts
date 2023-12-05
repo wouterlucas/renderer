@@ -231,7 +231,7 @@ export class ThreadXRendererNode extends SharedNode {
       textureOptions: null,
 
       // Setup the parent after
-      parent: null,
+      // parent: null,
     });
     return node;
   }

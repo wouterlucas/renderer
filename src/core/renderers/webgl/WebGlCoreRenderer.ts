@@ -539,5 +539,3 @@ export class WebGlCoreRenderer extends CoreRenderer {
     this.renderables = [];
   }
 }
-
-const idx = 0;

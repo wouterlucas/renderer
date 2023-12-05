@@ -95,7 +95,6 @@ export class MainOnlyNode extends EventEmitter implements INode {
         pivotX: props.pivotX,
         pivotY: props.pivotY,
         rotation: props.rotation,
-        parent: null,
         shader: null,
         shaderProps: null,
         texture: null,
@@ -110,6 +109,8 @@ export class MainOnlyNode extends EventEmitter implements INode {
     this.shader = props.shader;
     this.texture = props.texture;
     this.src = props.src;
+
+    // console.log(`MainOnlyNode created, id ${this.id}`);
   }
 
   get x(): number {

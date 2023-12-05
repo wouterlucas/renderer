@@ -35,6 +35,9 @@ import type {
 } from './text-rendering/renderers/TextRenderer.js';
 import { SdfTextRenderer } from './text-rendering/renderers/SdfTextRenderer/SdfTextRenderer.js';
 import { CanvasTextRenderer } from './text-rendering/renderers/CanvasTextRenderer.js';
+import { tree } from './Tree.js';
+
+import { rts } from './platform.js';
 
 export interface StageOptions {
   rootId: number;
@@ -135,7 +138,7 @@ export class Stage {
       pivotX: 0.5,
       pivotY: 0.5,
       rotation: 0,
-      parent: null,
+      // parent: null,
       texture: null,
       textureOptions: null,
       shader: null,
@@ -173,13 +176,7 @@ export class Stage {
    * Check if the scene has updates
    */
   hasSceneUpdates() {
-    const { scene } = this;
-
-    if (!scene?.root) {
-      return false;
-    }
-
-    return scene?.root?.hasUpdates;
+    return tree.hasDirtyNodes();
   }
 
   /**
@@ -187,38 +184,110 @@ export class Stage {
    */
   drawFrame() {
     const { renderer, scene } = this;
-    if (!scene?.root) {
+    assertTruthy(renderer);
+    assertTruthy(scene && scene.root);
+
+    // reset and clear viewport
+    const startSceneUpdateTime = performance.now();
+    // scene.root.update(this.deltaTime);
+
+    // process dirty nodes
+    // const dirtyNodes = tree.getDirtyNodes();
+    // dirtyNodes.forEach((node) => {
+
+    // if (node.updateMask == 2) {
+    //   const parent = tree.get(node.parentId);
+    //   parent?.update(this.deltaTime);
+    // }
+
+    // node.update(this.deltaTime);
+
+    // if (node.children) {
+    //   node.children.forEach((child) => {
+    //     child.update(this.deltaTime);
+    //   });
+    // }
+    // });
+
+    renderer.reset();
+    const nodes = tree.getAllNodes();
+
+    const addQuadsStart = performance.now();
+
+    while (nodes.length > 0) {
+      const node = nodes.shift();
+      if (!node) {
+        continue;
+      }
+
+      if (node.updateMask == 2 && node.parentId) {
+        const parent = tree.get(node.parentId);
+        if (parent) {
+          parent.update(this.deltaTime);
+
+          // remove from node queue
+          const index = nodes.indexOf(parent);
+          if (index > -1) {
+            nodes.splice(index, 1);
+          }
+
+          parent.renderQuads(this.renderer);
+        }
+      }
+
+      node.update(this.deltaTime);
+      node.renderQuads(this.renderer);
+
+      if (node.children.length > 0) {
+        node.children.forEach((child) => {
+          child.update(this.deltaTime);
+
+          // remove from node queue
+          const index = nodes.indexOf(child);
+          if (index > -1) {
+            nodes.splice(index, 1);
+          }
+
+          child.renderQuads(this.renderer);
+        });
+      }
+    }
+
+    const endSceneUpdateTime = performance.now();
+    const addQuadsEnd = performance.now();
+
+    const renderStart = performance.now();
+    renderer.render();
+    const renderEnd = performance.now();
+
+    // clear dirty nodes
+    tree.clearDirtyNodes();
+
+    console.log(
+      `Scene Update: ${rts(
+        endSceneUpdateTime - startSceneUpdateTime,
+      )}ms - Add Quads: ${rts(addQuadsEnd - addQuadsStart)}ms - Render: ${rts(
+        renderEnd - renderStart,
+      )}ms`,
+    );
+  }
+
+  processDirtyNodes(node: CoreNode) {
+    if (node.updateMask == 0 || node.hasUpdates === false) {
       return;
     }
 
-    // reset and clear viewport
-    scene?.root?.update(this.deltaTime);
+    if (node.updateMask == 2) {
+      const parent = tree.get(node.parentId);
+      parent?.update(this.deltaTime);
+    }
 
-    // test if we need to update the scene
-    renderer?.reset();
+    node.update(this.deltaTime);
 
-    this.addQuads(scene.root);
-
-    renderer?.render();
-  }
-
-  addQuads(node: CoreNode) {
-    assertTruthy(this.renderer && node.globalTransform);
-
-    node.renderQuads(this.renderer);
-    // node.children.forEach((child) => {
-    for (let i = 0; i < node.children.length; i++) {
-      const child = node.children[i];
-
-      if (!child) {
-        continue;
-      }
-
-      if (child?.worldAlpha === 0) {
-        continue;
-      }
-
-      this.addQuads(child);
+    if (node.children) {
+      node.children.forEach((child) => {
+        this.processDirtyNodes(child);
+      });
     }
   }
 

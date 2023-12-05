@@ -75,7 +75,7 @@ export class ThreadXRendererTextNode extends ThreadXRendererNode {
         textureOptions: null,
 
         // Setup the parent after
-        parent: null,
+        // parent: null,
 
         // Text properties
         text: sharedNodeStruct.text,

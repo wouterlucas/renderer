@@ -68,7 +68,7 @@ import type { ExampleSettings } from './common/ExampleSettings.js';
     {
       appWidth: 1920,
       appHeight: 1080,
-      deviceLogicalPixelRatio: 0.6666667,
+      deviceLogicalPixelRatio: 1,
       devicePhysicalPixelRatio: 1,
       clearColor: 0x00000000,
       coreExtensionModule: coreExtensionModuleUrl,

@@ -35,20 +35,35 @@ export default async function ({ renderer }: ExampleSettings) {
     parent: renderer.root,
   });
 
-  for (let i = 0; i < 103; i++) {
+  const appLayer = renderer.createNode({
+    width: 1920,
+    height: 1080,
+    parent: bg,
+  });
+
+  for (let i = 0; i < 600; i++) {
     const node = renderer.createNode({
       width: 505,
       height: 101,
       x: Math.random() * 1920,
       y: Math.random() * 1080,
+      // src: logo,
+      // color: 0x000000ff,
+      parent: appLayer,
+    });
+
+    const imageNode = renderer.createNode({
+      width: 500,
+      height: 98,
+      // color: 0xff00ffff,
       src: logo,
-      parent: bg,
+      parent: node,
     });
 
     nodes.push(node);
   }
 
-  // create 100 animations
+  // create animations
   const animate = () => {
     nodes.forEach((node) => {
       node

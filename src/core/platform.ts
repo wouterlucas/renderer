@@ -23,18 +23,38 @@ import type { Stage } from './Stage.js';
  * Platform render loop initiator
  */
 export const startLoop = (stage: Stage, pauseRaf: boolean) => {
+  let lastFrameTime = getTimeStamp();
+
   const runLoop = () => {
+    const startTimestamp = getTimeStamp();
+    const rafTimeInMs = startTimestamp - lastFrameTime;
+
     stage.updateAnimations();
+    const animationTimeMs = getTimeStamp() - startTimestamp;
 
     if (pauseRaf && !stage.hasSceneUpdates()) {
+      console.log('pausing raf');
       setTimeout(runLoop, 1000 / 60);
+      lastFrameTime = getTimeStamp();
       return;
     }
 
+    const drawTimestamp = getTimeStamp();
     stage.drawFrame();
+    const drawTime = getTimeStamp() - drawTimestamp;
+    const delta = getTimeStamp() - lastFrameTime;
+    const fps = Math.round(1000 / delta);
+
+    // console.log(`draw time: ${rts(drawTime)}ms, animations: ${rts(animationTimeMs)}ms, rafTime: ${rts(rafTimeInMs)}ms, total: ${rts(delta)}ms (fps: ${fps}})`);
+
+    lastFrameTime = getTimeStamp();
     requestAnimationFrame(runLoop);
   };
   requestAnimationFrame(runLoop);
+};
+
+export const rts = (timeStamp: number) => {
+  return Math.round(timeStamp * 1000) / 1000;
 };
 
 /**
