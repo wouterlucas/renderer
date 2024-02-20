@@ -38,6 +38,7 @@ import {
 import { FinalizationRegistryTextureUsageTracker } from './texture-usage-trackers/FinalizationRegistryTextureUsageTracker.js';
 import type { TextureUsageTracker } from './texture-usage-trackers/TextureUsageTracker.js';
 import { EventEmitter } from '../common/EventEmitter.js';
+import { santizeCustomDataMap } from '../render-drivers/utils.js';
 
 /**
  * An immutable reference to a specific Texture type
@@ -466,6 +467,7 @@ export class RendererMain extends EventEmitter {
       props.colorBl ?? props.colorBottom ?? props.colorLeft ?? color;
     const colorBr =
       props.colorBr ?? props.colorBottom ?? props.colorRight ?? color;
+    const data = santizeCustomDataMap(props.data ?? {});
 
     return {
       x: props.x ?? 0,
@@ -501,6 +503,7 @@ export class RendererMain extends EventEmitter {
       pivotX: props.pivotX ?? props.pivot ?? 0.5,
       pivotY: props.pivotY ?? props.pivot ?? 0.5,
       rotation: props.rotation ?? 0,
+      data: data,
     };
   }
 
