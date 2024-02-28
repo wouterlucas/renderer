@@ -116,7 +116,7 @@ const stylePropertyMap: {
       return null;
     }
 
-    return { prop: 'background-image', value: `url(${v})` };
+    return { prop: 'data-src', value: `url(${v})` };
   },
   color: (v) => {
     if (v === 0) {
@@ -158,6 +158,9 @@ export class Inspector {
   private scaleX = 1;
   private scaleY = 1;
 
+  // hacks for js-framework-benchmark do not publish
+  private selectedRow = 0;
+
   constructor(canvas: HTMLCanvasElement, settings: RendererMainSettings) {
     if (import.meta.env.PROD) return;
 
@@ -178,7 +181,10 @@ export class Inspector {
     this.scaleY = settings.deviceLogicalPixelRatio ?? 1;
 
     this.canvas = canvas;
-    this.root = document.createElement('div');
+    // this.root = document.createElement('div');
+    this.root =
+      document.getElementById('table') ?? document.createElement('table');
+
     this.setRootPosition();
     document.body.appendChild(this.root);
 
@@ -221,16 +227,104 @@ export class Inspector {
     this.root.style.transformOrigin = '0 0 0';
     this.root.style.transform = `scale(${this.scaleX}, ${this.scaleY})`;
     this.root.style.overflow = 'hidden';
-    this.root.style.zIndex = '-65534';
+    this.root.style.zIndex = '65534';
+
+    /**
+     * Hacks for js-framework-benchmark do not publish
+     */
+  }
+
+  // hacks for js-framework-benchmark do not publish
+  setSelection(nodeId: number) {
+    // remove current selected
+    const old = document.getElementById(this.selectedRow.toString());
+    old?.classList.remove('danger');
+
+    const div = document.getElementById(nodeId.toString());
+    div?.classList.add('danger');
+
+    this.selectedRow = nodeId;
   }
 
   createDiv(
     node: INode | ITextNode,
     properties: INodeWritableProps | ITextNodeWritableProps,
   ): HTMLElement {
-    const div = document.createElement('div');
+    // hacks for js-framework-benchmark do not publish
+    let div;
+
+    if (properties.data?.type === 'benchmark') {
+      div = document.createElement('tbody');
+    }
+
+    if (properties.data?.type === 'row') {
+      div = document.createElement('tr');
+    }
+
+    if (properties.data?.type === 'id') {
+      div = document.createElement('td');
+      div.classList.add('col-md-1');
+    }
+
+    if (properties.data?.type === 'content') {
+      div = document.createElement('td');
+      div.classList.add('col-md-4');
+
+      const a = document.createElement('a');
+      a.onclick = () => {
+        this.setSelection(node.id);
+      };
+
+      a.id = `a-${node.id.toString()}`;
+      div.appendChild(a);
+    }
+
+    if (properties.data?.type === 'remove') {
+      div = document.createElement('td');
+      div.classList.add('col-md-1');
+
+      const span = document.createElement('span');
+      span.classList.add('glyphicon');
+      span.classList.add('glyphicon-remove');
+
+      span.onclick = () => {
+        node.parent?.destroy();
+      };
+
+      span.id = `span-${node.id.toString()}`;
+      div.appendChild(span);
+    }
+
+    if (properties.data?.type === 'empty') {
+      div = document.createElement('td');
+      div.classList.add('col-md-6');
+    }
+
+    if (!div) {
+      div = document.createElement('div');
+    }
+
+    // const div = document.createElement('div');
     div.style.position = 'absolute';
     div.id = node.id.toString();
+
+    if ('text' in properties) {
+      // get parent <a> element
+      const parentA = node.parent?.id
+        ? document.getElementById(`a-${node.parent.id.toString()}`)
+        : null;
+      console.log(
+        'beep boop',
+        document.getElementById(`a-${node.parent?.id.toString()}`),
+      );
+      if (parentA) {
+        console.log('parentA', parentA, properties.text);
+        parentA.textContent = properties.text;
+        parentA.style.position = 'relative';
+        parentA.style.fontSize = `${String(properties.fontSize)}px`;
+        return parentA;
+      }
+    }
 
     // set initial properties
     for (const key in properties) {
@@ -253,6 +347,8 @@ export class Inspector {
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
     (div as any).node = node;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+    (node as any).div = div;
 
     return this.createProxy(node, div);
   }
@@ -335,6 +431,10 @@ export class Inspector {
     // special case for text
     if (property === 'text') {
       div.innerHTML = String(value);
+
+      // hide text because we can't render SDF fonts
+      // it would look weird and obstruct the WebGL rendering
+      div.style.visibility = 'hidden';
       return;
     }
 
@@ -377,13 +477,13 @@ export class Inspector {
 
     // custom data properties
     // Needs https://github.com/lightning-js/renderer/pull/178 to be merged
-    // if (property === 'data') {
-    //   for (const key in value) {
-    //     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    //     div.setAttribute(`data-${key}`, String(value[key]));
-    //   }
-    //   return;
-    // }
+    if (property === 'data') {
+      for (const key in value) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        div.setAttribute(`data-${key}`, String(value[key]));
+      }
+      return;
+    }
   }
 
   // simple animation handler
