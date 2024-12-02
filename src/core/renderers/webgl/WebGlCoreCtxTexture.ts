@@ -79,6 +79,9 @@ export class WebGlCoreCtxTexture extends CoreContextTexture {
    * property.
    */
   load() {
+    // this shouldnt happen anymore
+    debugger;
+
     // If the texture is already loading or loaded, don't load it again.
     if (this._state === 'loading' || this._state === 'loaded') {
       return;

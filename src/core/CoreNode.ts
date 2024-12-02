@@ -781,9 +781,10 @@ export class CoreNode extends EventEmitter {
     queueMicrotask(() => {
       texture.preventCleanup = this.props.preventCleanup;
       // Preload texture if required
-      if (this.textureOptions.preload) {
-        texture.ctxTexture.load();
-      }
+      // this should happen batched now
+      // if (this.textureOptions.preload) {
+      //   texture.ctxTexture.load();
+      // }
 
       texture.on('loaded', this.onTextureLoaded);
       texture.on('failed', this.onTextureFailed);
@@ -2241,12 +2242,12 @@ export class CoreNode extends EventEmitter {
     settings: Partial<AnimationSettings>,
   ): IAnimationController {
     const animation = new CoreAnimation(this, props, settings);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+
     const controller = new CoreAnimationController(
       this.stage.animationManager,
       animation,
     );
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+
     return controller;
   }
 
