@@ -25,11 +25,12 @@ import {
 import type { TextureOptions } from './CoreTextureManager.js';
 import type { CoreRenderer } from './renderers/CoreRenderer.js';
 import type { Stage } from './Stage.js';
-import type {
-  Texture,
-  TextureFailedEventHandler,
-  TextureFreedEventHandler,
-  TextureLoadedEventHandler,
+import {
+  TextureType,
+  type Texture,
+  type TextureFailedEventHandler,
+  type TextureFreedEventHandler,
+  type TextureLoadedEventHandler,
 } from './textures/Texture.js';
 import type {
   Dimensions,
@@ -1556,7 +1557,9 @@ export class CoreNode extends EventEmitter {
     assertTruthy(this.renderCoords);
 
     if (this.texture?.ctxTexture === undefined) {
-      console.log('Texture not loaded');
+      // if (this.texture?.type === TextureType.subTexture) {
+      //   debugger;
+      // }
       return;
     }
 

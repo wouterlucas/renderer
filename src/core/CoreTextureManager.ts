@@ -397,8 +397,6 @@ export class CoreTextureManager extends EventEmitter {
    * Process a limited number of downloads and uploads.
    */
   processSome(maxItems = this.maxItemsPerFrame): void {
-    console.log('processSome', maxItems);
-
     let itemsProcessed = 0;
 
     // Process downloads
@@ -429,6 +427,10 @@ export class CoreTextureManager extends EventEmitter {
       console.log('uploading texture', texture.type);
       texture.loadCtxTexture();
       itemsProcessed++;
+    }
+
+    if (itemsProcessed > 0) {
+      console.log('Processed', itemsProcessed, 'items');
     }
   }
 

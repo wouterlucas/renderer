@@ -80,9 +80,6 @@ export class WebGlCoreCtxTexture extends CoreContextTexture {
    * property.
    */
   load() {
-    // this shouldnt happen anymore
-    debugger;
-
     // If the texture is already loading or loaded, don't load it again.
     if (this._state === 'loading' || this._state === 'loaded') {
       return;
@@ -110,6 +107,7 @@ export class WebGlCoreCtxTexture extends CoreContextTexture {
         this._h = height;
         // Update the texture source's width and height so that it can be used
         // for rendering.
+        console.log('WebGlCoreCtxTexture.load: loaded', width, height);
         this.textureSource.setState('loaded', { width, height });
       })
       .catch((err) => {

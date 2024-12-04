@@ -166,6 +166,8 @@ export abstract class Texture extends EventEmitter {
 
   public ctxTexture: CoreContextTexture | undefined;
 
+  public textureData: TextureData | null = null;
+
   constructor(protected txManager: CoreTextureManager) {
     super();
   }
@@ -224,11 +226,16 @@ export abstract class Texture extends EventEmitter {
    */
   loadCtxTexture(): void {
     if (this.ctxTexture !== undefined) {
+      console.log('Texture.loadCtxTexture: ctxTexture already exists');
       return;
     }
 
+    console.log('Texture.loadCtxTexture: creating ctxTexture');
     const ctxTexture = this.txManager.renderer.createCtxTexture(this);
+    ctxTexture.load();
+
     Object.defineProperty(this, 'ctxTexture', { value: ctxTexture });
+    console.log('Texture.loadCtxTexture: ctxTexture', ctxTexture);
   }
 
   /**
@@ -239,6 +246,9 @@ export abstract class Texture extends EventEmitter {
    */
   free(): void {
     this.ctxTexture?.free();
+    if (this.textureData !== null) {
+      this.textureData = null;
+    }
   }
 
   /**
@@ -282,7 +292,22 @@ export abstract class Texture extends EventEmitter {
    * @returns
    * The texture data for this texture.
    */
-  abstract getTextureData(): Promise<TextureData>;
+  async getTextureData(): Promise<TextureData> {
+    if (this.textureData === null) {
+      this.textureData = await this.getTextureSource();
+    }
+
+    return this.textureData;
+  }
+
+  /**
+   * Get the texture source for this texture.
+   *
+   * @remarks
+   * This method is called by the CoreContextTexture when the texture is loaded.
+   * The texture source is then used to populate the CoreContextTexture.
+   */
+  abstract getTextureSource(): Promise<TextureData>;
 
   /**
    * Make a cache key for this texture.

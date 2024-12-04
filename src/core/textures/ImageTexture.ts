@@ -200,6 +200,8 @@ export class ImageTexture extends Texture {
   async loadImage(src: string) {
     const { premultiplyAlpha, sx, sy, sw, sh } = this.props;
 
+    console.log('loadImage', src);
+
     if (this.txManager.hasCreateImageBitmap === true) {
       if (
         this.txManager.hasWorker === true &&
@@ -222,7 +224,7 @@ export class ImageTexture extends Texture {
     return this.loadImageFallback(src, premultiplyAlpha ?? true);
   }
 
-  override async getTextureData(): Promise<TextureData> {
+  override async getTextureSource(): Promise<TextureData> {
     const { src, premultiplyAlpha, type } = this.props;
     if (src === null) {
       return {
