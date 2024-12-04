@@ -320,6 +320,10 @@ export class Stage {
       this.root.update(this.deltaTime, this.root.clippingRect);
     }
 
+    // Process some textures
+    // TODO this should have a configurable amount
+    this.txManager.processSome();
+
     // Reset render operations and clear the canvas
     renderer.reset();
 

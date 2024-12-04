@@ -1555,6 +1555,11 @@ export class CoreNode extends EventEmitter {
     assertTruthy(this.globalTransform);
     assertTruthy(this.renderCoords);
 
+    if (this.texture?.ctxTexture === undefined) {
+      console.log('Texture not loaded');
+      return;
+    }
+
     // add to list of renderables to be sorted before rendering
     renderer.addQuad({
       width: this.props.width,

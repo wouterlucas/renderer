@@ -393,6 +393,45 @@ export class CoreTextureManager extends EventEmitter {
     return texture as InstanceType<TextureMap[Type]>;
   }
 
+  /**
+   * Process a limited number of downloads and uploads.
+   */
+  processSome(maxItems = this.maxItemsPerFrame): void {
+    console.log('processSome', maxItems);
+
+    let itemsProcessed = 0;
+
+    // Process downloads
+    while (
+      this.downloadTextureSourceQueue.length > 0 &&
+      itemsProcessed < maxItems
+    ) {
+      const texture = this.downloadTextureSourceQueue.shift()!;
+      console.log('downloading texture', texture.type);
+
+      texture.setState('loading');
+      texture
+        .getTextureData()
+        .then(() => {
+          this.enqueueUploadTexture(texture);
+        })
+        .catch((err) => {
+          texture.setState('failed', err);
+          console.error(`Failed to download texture: ${texture.type}`, err);
+        });
+
+      itemsProcessed++;
+    }
+
+    // Process uploads
+    while (this.uploadTextureQueue.length > 0 && itemsProcessed < maxItems) {
+      const texture = this.uploadTextureQueue.shift()!;
+      console.log('uploading texture', texture.type);
+      texture.loadCtxTexture();
+      itemsProcessed++;
+    }
+  }
+
   // private initTextureToCache(texture: Texture, cacheKey: string) {
   //   const { keyCache, inverseKeyCache } = this;
   //   keyCache.set(cacheKey, texture);
