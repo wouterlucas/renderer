@@ -768,6 +768,13 @@ export class CoreNode extends EventEmitter {
         UpdateType.RenderBounds |
         UpdateType.RenderState,
     );
+
+    // load default texture if no texture is set
+    if (!this.props.src && !this.props.texture && !this.props.rtt) {
+      this.texture = this.stage.txManager.loadTexture('ColorTexture', {
+        color: 0xffffffff,
+      });
+    }
   }
 
   //#region Textures
@@ -781,12 +788,6 @@ export class CoreNode extends EventEmitter {
     // synchronous task after calling loadTexture()
     queueMicrotask(() => {
       texture.preventCleanup = this.props.preventCleanup;
-      // Preload texture if required
-      // this should happen batched now
-      // if (this.textureOptions.preload) {
-      //   texture.ctxTexture.load();
-      // }
-
       texture.on('loaded', this.onTextureLoaded);
       texture.on('failed', this.onTextureFailed);
       texture.on('freed', this.onTextureFreed);
@@ -1556,10 +1557,10 @@ export class CoreNode extends EventEmitter {
     assertTruthy(this.globalTransform);
     assertTruthy(this.renderCoords);
 
-    if (this.texture?.ctxTexture === undefined) {
-      // if (this.texture?.type === TextureType.subTexture) {
-      //   debugger;
-      // }
+    if (
+      this.texture?.ctxTexture === undefined ||
+      this.texture.state !== 'loaded'
+    ) {
       return;
     }
 

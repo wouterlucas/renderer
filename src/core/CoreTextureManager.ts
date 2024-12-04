@@ -388,6 +388,8 @@ export class CoreTextureManager extends EventEmitter {
     // only ImageTexture needs to be loaded in batch
     if (texture instanceof ImageTexture) {
       this.enqueueDownloadTextureSource(texture);
+    } else {
+      this.enqueueUploadTexture(texture);
     }
 
     return texture as InstanceType<TextureMap[Type]>;
@@ -397,6 +399,10 @@ export class CoreTextureManager extends EventEmitter {
    * Process a limited number of downloads and uploads.
    */
   processSome(maxItems = this.maxItemsPerFrame): void {
+    if (this.initialized === false) {
+      return;
+    }
+
     let itemsProcessed = 0;
 
     // Process downloads

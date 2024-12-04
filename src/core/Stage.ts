@@ -148,6 +148,12 @@ export class Stage {
 
     this.eventBus = options.eventBus;
     this.txManager = new CoreTextureManager(numImageWorkers);
+
+    this.txManager.on('initialized', () => {
+      console.log('Texture Manager initialized, requesting render');
+      this.requestRender();
+    });
+
     this.txMemManager = new TextureMemoryManager(this, textureMemory);
     this.shManager = new CoreShaderManager();
     this.animationManager = new AnimationManager();
@@ -335,8 +341,11 @@ export class Stage {
     // If we have RTT nodes draw them first
     // So we can use them as textures in the main scene
     if (renderer.rttNodes.length > 0) {
+      console.log('Rendering RTT nodes');
       renderer.renderRTTNodes();
     }
+
+    console.log('Rendering main scene');
 
     // Fill quads buffer
     this.addQuads(this.root);

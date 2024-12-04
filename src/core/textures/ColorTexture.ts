@@ -63,6 +63,8 @@ export class ColorTexture extends Texture {
   }
 
   override async getTextureSource(): Promise<TextureData> {
+    console.log('ColorTexture.getTextureSource');
+
     const pixelData = new Uint8Array(4);
 
     if (this.color === 0xffffffff) {
