@@ -1064,6 +1064,10 @@ export class CoreNode extends EventEmitter {
    * @param delta
    */
   update(delta: number, parentClippingRect: RectWithValid): void {
+    if (this.updateType === UpdateType.None) {
+      return;
+    }
+
     if (this.updateType & UpdateType.ScaleRotate) {
       this.updateScaleRotateTransform();
       this.setUpdateType(UpdateType.Local);
@@ -1075,16 +1079,16 @@ export class CoreNode extends EventEmitter {
     }
 
     const parent = this.props.parent;
+    const props = this.props;
+    const parentHasRenderTexture = this.parentHasRenderTexture;
     let renderState: CoreNodeRenderState | null = null;
 
     // Handle specific RTT updates at this node level
-    if (this.updateType & UpdateType.RenderTexture && this.rtt) {
+    if (this.updateType & UpdateType.RenderTexture && this.rtt === true) {
       this.hasRTTupdates = true;
     }
 
     if (this.updateType & UpdateType.Global) {
-      assertTruthy(this.localTransform);
-
       if (this.parentHasRenderTexture === true && parent?.rtt === true) {
         // we are at the start of the RTT chain, so we need to reset the globalTransform
         // for correct RTT rendering
@@ -1093,7 +1097,7 @@ export class CoreNode extends EventEmitter {
         // Maintain a full scene global transform for bounds detection
         this.sceneGlobalTransform = Matrix3d.copy(
           parent?.globalTransform || Matrix3d.identity(),
-        ).multiply(this.localTransform);
+        ).multiply(this.localTransform!);
       } else if (
         this.parentHasRenderTexture === true &&
         parent?.rtt === false
@@ -1102,22 +1106,22 @@ export class CoreNode extends EventEmitter {
         // so we need to propogate the sceneGlobalTransform of the parent
         // to maintain a full scene global transform for bounds detection
         this.sceneGlobalTransform = Matrix3d.copy(
-          parent?.sceneGlobalTransform || this.localTransform,
-        ).multiply(this.localTransform);
+          parent?.sceneGlobalTransform || this.localTransform!,
+        ).multiply(this.localTransform!);
 
         this.globalTransform = Matrix3d.copy(
-          parent?.globalTransform || this.localTransform,
+          parent?.globalTransform || this.localTransform!,
           this.globalTransform,
         );
       } else {
         this.globalTransform = Matrix3d.copy(
-          parent?.globalTransform || this.localTransform,
+          parent?.globalTransform || this.localTransform!,
           this.globalTransform,
         );
       }
 
       if (parent !== null) {
-        this.globalTransform.multiply(this.localTransform);
+        this.globalTransform.multiply(this.localTransform!);
       }
       this.calculateRenderCoords();
       this.updateBoundingRect();
@@ -1156,11 +1160,7 @@ export class CoreNode extends EventEmitter {
     }
 
     if (this.updateType & UpdateType.WorldAlpha) {
-      if (parent) {
-        this.worldAlpha = parent.worldAlpha * this.props.alpha;
-      } else {
-        this.worldAlpha = this.props.alpha;
-      }
+      this.worldAlpha = ((parent && parent.worldAlpha) || 1) * props.alpha;
       this.setUpdateType(
         UpdateType.Children |
           UpdateType.PremultipliedColors |
@@ -1182,50 +1182,54 @@ export class CoreNode extends EventEmitter {
     }
 
     if (this.updateType & UpdateType.PremultipliedColors) {
-      this.premultipliedColorTl = mergeColorAlphaPremultiplied(
-        this.props.colorTl,
-        this.worldAlpha,
-        true,
-      );
+      const p = this.props;
+      const alpha = this.worldAlpha;
 
-      // If all the colors are the same just sent them all to the same value
-      if (
-        this.props.colorTl === this.props.colorTr &&
-        this.props.colorBl === this.props.colorBr &&
-        this.props.colorTl === this.props.colorBl
-      ) {
+      const tl = p.colorTl;
+      const tr = p.colorTr;
+      const bl = p.colorBl;
+      const br = p.colorBr;
+
+      // Fast equality check (covers all 4 corners)
+      const same = tl === tr && tl === bl && tl === br;
+
+      const merged = mergeColorAlphaPremultiplied(tl, alpha, true);
+
+      this.premultipliedColorTl = merged;
+
+      if (same) {
         this.premultipliedColorTr =
           this.premultipliedColorBl =
           this.premultipliedColorBr =
-            this.premultipliedColorTl;
+            merged;
       } else {
         this.premultipliedColorTr = mergeColorAlphaPremultiplied(
-          this.props.colorTr,
-          this.worldAlpha,
+          tr,
+          alpha,
           true,
         );
         this.premultipliedColorBl = mergeColorAlphaPremultiplied(
-          this.props.colorBl,
-          this.worldAlpha,
+          bl,
+          alpha,
           true,
         );
         this.premultipliedColorBr = mergeColorAlphaPremultiplied(
-          this.props.colorBr,
-          this.worldAlpha,
+          br,
+          alpha,
           true,
         );
       }
     }
 
     // No need to update zIndex if there is no parent
-    if (parent !== null && this.updateType & UpdateType.CalculatedZIndex) {
+    if (this.updateType & UpdateType.CalculatedZIndex && parent !== null) {
       this.calculateZIndex();
       // Tell parent to re-sort children
       parent.setUpdateType(UpdateType.ZIndexSortedChildren);
     }
 
     if (
-      this.props.strictBounds === true &&
+      props.strictBounds === true &&
       this.renderState === CoreNodeRenderState.OutOfBounds
     ) {
       this.updateType &= ~UpdateType.RenderBounds; // remove render bounds update
@@ -1268,7 +1272,7 @@ export class CoreNode extends EventEmitter {
     // If the node has an RTT parent and requires a texture re-render, inform the RTT parent
     // if (this.parentHasRenderTexture && this.updateType & UpdateType.RenderTexture) {
     // @TODO have a more scoped down updateType for RTT updates
-    if (this.parentHasRenderTexture && this.updateType > 0) {
+    if (parentHasRenderTexture === true) {
       this.notifyParentRTTOfUpdate();
     }
 
