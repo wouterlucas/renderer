@@ -709,6 +709,54 @@ export interface CoreNodeAnimateProps extends NumberProps<CoreNodeProps> {
 }
 
 /**
+ * Default properties of a Node
+ */
+const defaultNodeProps: CoreNodeProps = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  alpha: 1,
+  autosize: false,
+  boundsMargin: null,
+  clipping: false,
+  color: 0xffffffff,
+  colorTop: 0xffffffff,
+  colorBottom: 0xffffffff,
+  colorLeft: 0xffffffff,
+  colorRight: 0xffffffff,
+  colorTl: 0xffffffff,
+  colorTr: 0xffffffff,
+  colorBl: 0xffffffff,
+  colorBr: 0xffffffff,
+  zIndex: 0,
+  zIndexLocked: 0,
+  parent: null,
+  texture: null,
+  textureOptions: {},
+  shader: null,
+  src: null,
+  srcHeight: undefined,
+  srcWidth: undefined,
+  srcX: undefined,
+  srcY: undefined,
+  scale: null,
+  scaleX: 1,
+  scaleY: 1,
+  mount: 0,
+  mountX: 0,
+  mountY: 0,
+  pivot: 0.5,
+  pivotX: 0.5,
+  pivotY: 0.5,
+  rotation: 0,
+  rtt: false,
+  data: {},
+  imageType: undefined,
+  strictBounds: true,
+};
+
+/**
  * A visual Node in the Renderer scene graph.
  *
  * @remarks
@@ -719,7 +767,7 @@ export interface CoreNodeAnimateProps extends NumberProps<CoreNodeProps> {
 export class CoreNode extends EventEmitter {
   readonly children: CoreNode[] = [];
   protected _id: number = getNewId();
-  readonly props: CoreNodeProps;
+  public props: CoreNodeProps = defaultNodeProps;
 
   private hasShaderUpdater = false;
   private hasColorProps = false;
@@ -762,70 +810,10 @@ export class CoreNode extends EventEmitter {
    */
   public framebufferDimensions: Dimensions | null = null;
 
-  constructor(readonly stage: Stage, props: CoreNodeProps) {
+  constructor(readonly stage: Stage, props: Partial<CoreNodeProps>) {
     super();
 
-    const p = (this.props = {} as CoreNodeProps);
-
-    // Fast-path assign only known keys
-    p.x = props.x;
-    p.y = props.y;
-    p.width = props.width;
-    p.height = props.height;
-    p.alpha = props.alpha;
-    p.autosize = props.autosize;
-    p.boundsMargin = props.boundsMargin;
-    p.clipping = props.clipping;
-    p.color = props.color;
-
-    p.colorTop = props.colorTop;
-    p.colorBottom = props.colorBottom;
-    p.colorLeft = props.colorLeft;
-    p.colorRight = props.colorRight;
-    p.colorTl = props.colorTl;
-    p.colorTr = props.colorTr;
-    p.colorBl = props.colorBl;
-    p.colorBr = props.colorBr;
-
-    p.scaleX = props.scaleX;
-    p.scaleY = props.scaleY;
-    p.rotation = props.rotation;
-    p.pivotX = props.pivotX;
-    p.pivotY = props.pivotY;
-    p.mountX = props.mountX;
-    p.mountY = props.mountY;
-    p.mount = props.mount;
-    p.pivot = props.pivot;
-    p.strictBounds = props.strictBounds;
-
-    p.zIndex = props.zIndex;
-    p.zIndexLocked = props.zIndexLocked;
-    p.textureOptions = props.textureOptions;
-
-    p.data = props.data;
-    p.imageType = props.imageType;
-    p.srcX = props.srcX;
-    p.srcY = props.srcY;
-    p.srcWidth = props.srcWidth;
-    p.srcHeight = props.srcHeight;
-
-    p.parent = null;
-    p.texture = null;
-    p.shader = null;
-    p.src = null;
-    p.rtt = false;
-
-    // Assign props to instances
-    this.parent = props.parent;
-    this.texture = props.texture;
-    this.shader = props.shader;
-    this.src = props.src;
-    this.rtt = props.rtt;
-
-    const bm = props.boundsMargin;
-    if (bm !== undefined && bm !== null) {
-      this.boundsMargin = Array.isArray(bm) ? bm : [bm, bm, bm, bm];
-    }
+    this.setProps(props);
 
     this.setUpdateType(
       UpdateType.Local | UpdateType.RenderBounds | UpdateType.RenderState,
@@ -836,6 +824,101 @@ export class CoreNode extends EventEmitter {
     const dt = this.stage.defaultTexture;
     if (dt !== null && dt.state !== 'loaded') {
       dt.once('loaded', () => this.setUpdateType(UpdateType.IsRenderable));
+    }
+  }
+
+  setProps(props: Partial<CoreNodeProps>) {
+    const color = props.color ?? 0xffffffff;
+    const colorTop = props.colorTop ?? color;
+    const colorBottom = props.colorBottom ?? color;
+    const colorLeft = props.colorLeft ?? color;
+    const colorRight = props.colorRight ?? color;
+
+    const colorTl = props.colorTl ?? colorTop ?? colorLeft ?? color;
+    const colorTr = props.colorTr ?? colorTop ?? colorRight ?? color;
+    const colorBl = props.colorBl ?? colorBottom ?? colorLeft ?? color;
+    const colorBr = props.colorBr ?? colorBottom ?? colorRight ?? color;
+
+    const scale = props.scale ?? null;
+    const mount = props.mount ?? 0;
+    const pivot = props.pivot ?? 0.5;
+
+    props.color = color;
+    props.colorTop = colorTop;
+    props.colorBottom = colorBottom;
+    props.colorLeft = colorLeft;
+    props.colorRight = colorRight;
+    props.colorTl = colorTl;
+    props.colorTr = colorTr;
+    props.colorBl = colorBl;
+    props.colorBr = colorBr;
+    props.scale = scale;
+    props.mount = mount;
+    props.pivot = pivot;
+
+    this.props = {
+      x: props.x ?? 0,
+      y: props.y ?? 0,
+      width: props.width ?? 0,
+      height: props.height ?? 0,
+      alpha: props.alpha ?? 1,
+      autosize: props.autosize ?? false,
+      boundsMargin: props.boundsMargin ?? null,
+      clipping: props.clipping ?? false,
+      color,
+      colorTop,
+      colorBottom,
+      colorLeft,
+      colorRight,
+      colorTl,
+      colorTr,
+      colorBl,
+      colorBr,
+      zIndex: props.zIndex ?? 0,
+      zIndexLocked: props.zIndexLocked ?? 0,
+      // parent: props.parent ?? null,
+      // texture: props.texture ?? null,
+      textureOptions: props.textureOptions ?? {},
+      // shader: props.shader ?? this.stage.defShaderNode,
+      // src: props.src ?? null,
+      srcHeight: props.srcHeight,
+      srcWidth: props.srcWidth,
+      srcX: props.srcX,
+      srcY: props.srcY,
+      scale,
+      scaleX: props.scaleX ?? scale ?? 1,
+      scaleY: props.scaleY ?? scale ?? 1,
+      mount,
+      mountX: props.mountX ?? mount,
+      mountY: props.mountY ?? mount,
+      pivot,
+      pivotX: props.pivotX ?? pivot,
+      pivotY: props.pivotY ?? pivot,
+      rotation: props.rotation ?? 0,
+      // rtt: props.rtt ?? false,
+      // data, @TODO fixme
+      imageType: props.imageType,
+      strictBounds: props.strictBounds ?? this.strictBounds,
+      parent: null,
+      texture: null,
+      shader: null,
+      src: null,
+      rtt: false,
+    };
+
+    // const p = (this.props = resolvedProps);
+    // p.textureOptions = props.textureOptions || {};
+
+    // Assign props to instances
+    this.parent = props.parent || null;
+    this.texture = props.texture || null;
+    this.shader = props.shader || this.stage.defShaderNode;
+    this.src = props.src || null;
+    this.rtt = props.rtt || false;
+
+    const bm = props.boundsMargin;
+    if (bm !== undefined && bm !== null) {
+      this.boundsMargin = Array.isArray(bm) ? bm : [bm, bm, bm, bm];
     }
   }
 
@@ -1706,6 +1789,32 @@ export class CoreNode extends EventEmitter {
     }
   }
 
+  /**
+   * Reset the node to its initial state
+   */
+  reset(): void {
+    this.renderState = CoreNodeRenderState.Init;
+
+    // Reset all children
+    for (const child of this.children) {
+      child.reset();
+    }
+    this.children.length = 0;
+
+    this.parent = null;
+
+    if (this.props.src !== null) {
+      this.src = null;
+    }
+
+    if (this.props.rtt === true) {
+      this.rtt = false;
+    }
+
+    this.updateType = 0;
+    this.childUpdateType = 0;
+  }
+
   renderQuads(renderer: CoreRenderer): void {
     if (this.parentHasRenderTexture === true) {
       const rtt = renderer.renderToTextureActive;
@@ -1985,6 +2094,12 @@ export class CoreNode extends EventEmitter {
       return props.boundsMargin;
     }
 
+    console.log(
+      'using parent bounds margin, child id:',
+      this._id,
+      'parent id:',
+      this.parent?._id,
+    );
     const parent = this.parent;
     if (parent !== null) {
       const margin = parent.boundsMargin;

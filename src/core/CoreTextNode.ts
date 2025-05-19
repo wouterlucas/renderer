@@ -56,6 +56,36 @@ export interface CoreTextNodeProps extends CoreNodeProps, TrProps {
   textRendererOverride: keyof TextRendererMap | null;
 }
 
+const defaultTextNodeProps: Partial<CoreTextNodeProps> = {
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  color: 0xffffff,
+  zIndex: 0,
+  alpha: 1,
+  text: '',
+  fontSize: 16,
+  fontFamily: 'sans-serif',
+  fontStyle: 'normal',
+  fontWeight: 'normal',
+  fontStretch: 'normal',
+  textAlign: 'left',
+  contain: 'none',
+  scrollable: false,
+  scrollY: 0,
+  offsetY: 0,
+  letterSpacing: 0,
+  lineHeight: undefined,
+  maxLines: 0,
+  textBaseline: 'alphabetic',
+  verticalAlign: 'middle',
+  overflowSuffix: '...',
+  wordBreak: 'normal',
+  debug: {},
+  textRendererOverride: null,
+};
+
 /**
  * An CoreNode in the Renderer scene graph that renders text.
  *
@@ -73,47 +103,39 @@ export interface CoreTextNodeProps extends CoreNodeProps, TrProps {
  * For non-text rendering, see {@link CoreNode}.
  */
 export class CoreTextNode extends CoreNode implements CoreTextNodeProps {
-  textRenderer: TextRenderer;
-  trState: TextRendererState;
+  textRenderer!: TextRenderer;
+  trState!: TextRendererState;
   private _textRendererOverride: CoreTextNodeProps['textRendererOverride'] =
     null;
 
-  constructor(
-    stage: Stage,
-    props: CoreTextNodeProps,
-    textRenderer: TextRenderer,
-  ) {
+  constructor(stage: Stage, props: Partial<CoreTextNodeProps>) {
     super(stage, props);
-    this._textRendererOverride = props.textRendererOverride;
-    this.textRenderer = textRenderer;
-    const textRendererState = this.createState({
-      x: this.absX,
-      y: this.absY,
-      width: props.width,
-      height: props.height,
-      textAlign: props.textAlign,
-      color: props.color,
-      zIndex: props.zIndex,
-      contain: props.contain,
-      scrollable: props.scrollable,
-      scrollY: props.scrollY,
-      offsetY: props.offsetY,
-      letterSpacing: props.letterSpacing,
-      debug: props.debug,
-      fontFamily: props.fontFamily,
-      fontSize: props.fontSize,
-      fontStretch: props.fontStretch,
-      fontStyle: props.fontStyle,
-      fontWeight: props.fontWeight,
-      text: props.text,
-      lineHeight: props.lineHeight,
-      maxLines: props.maxLines,
-      textBaseline: props.textBaseline,
-      verticalAlign: props.verticalAlign,
-      overflowSuffix: props.overflowSuffix,
-      wordBreak: props.wordBreak,
-    });
+    // this.setTextProps(props);
+  }
 
+  override setProps(props: Partial<CoreTextNodeProps>) {
+    super.setProps(props);
+    // const resolvedProps = {} as CoreTextNodeProps;
+    // Object.assign(resolvedProps, defaultTextNodeProps, props);
+    const resolvedProps = {
+      ...defaultTextNodeProps,
+      ...props,
+    } as CoreTextNodeProps;
+
+    const resolvedTextRenderer = this.stage.resolveTextRenderer(
+      resolvedProps,
+      props.textRendererOverride,
+    );
+
+    if (!resolvedTextRenderer) {
+      throw new Error(
+        `No compatible text renderer found for ${resolvedProps.fontFamily}`,
+      );
+    }
+
+    // this._textRendererOverride = props.textRendererOverride;
+    this.textRenderer = resolvedTextRenderer;
+    const textRendererState = this.createState(resolvedProps);
     this.trState = textRendererState;
   }
 

@@ -604,47 +604,11 @@ export class Stage {
   }
 
   createNode(props: Partial<CoreNodeProps>) {
-    const resolvedProps = this.resolveNodeDefaults(props);
-    return new CoreNode(this, resolvedProps);
+    return new CoreNode(this, props);
   }
 
   createTextNode(props: Partial<CoreTextNodeProps>) {
-    const fontSize = props.fontSize ?? 16;
-    const resolvedProps = Object.assign(this.resolveNodeDefaults(props), {
-      text: props.text ?? '',
-      textRendererOverride: props.textRendererOverride ?? null,
-      fontSize,
-      fontFamily: props.fontFamily ?? 'sans-serif',
-      fontStyle: props.fontStyle ?? 'normal',
-      fontWeight: props.fontWeight ?? 'normal',
-      fontStretch: props.fontStretch ?? 'normal',
-      textAlign: props.textAlign ?? 'left',
-      contain: props.contain ?? 'none',
-      scrollable: props.scrollable ?? false,
-      scrollY: props.scrollY ?? 0,
-      offsetY: props.offsetY ?? 0,
-      letterSpacing: props.letterSpacing ?? 0,
-      lineHeight: props.lineHeight, // `undefined` is a valid value
-      maxLines: props.maxLines ?? 0,
-      textBaseline: props.textBaseline ?? 'alphabetic',
-      verticalAlign: props.verticalAlign ?? 'middle',
-      overflowSuffix: props.overflowSuffix ?? '...',
-      wordBreak: props.wordBreak ?? 'normal',
-      debug: props.debug ?? {},
-    });
-
-    const resolvedTextRenderer = this.resolveTextRenderer(
-      resolvedProps,
-      props.textRendererOverride,
-    );
-
-    if (!resolvedTextRenderer) {
-      throw new Error(
-        `No compatible text renderer found for ${resolvedProps.fontFamily}`,
-      );
-    }
-
-    return new CoreTextNode(this, resolvedProps, resolvedTextRenderer);
+    return new CoreTextNode(this, props);
   }
 
   setBoundsMargin(value: number | [number, number, number, number]) {
